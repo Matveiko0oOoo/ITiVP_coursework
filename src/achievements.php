@@ -7,12 +7,10 @@ $db = new Database();
 $conn = $db->getConnection();
 $userId = getCurrentUserId();
 
-// Get user stats for achievements
 $stmt = $conn->prepare("SELECT total_reading_minutes, total_books_finished, current_streak FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $userStats = $stmt->fetch();
 
-// Define achievements
 $achievements = [
     ['id' => 'pages_100', 'name' => 'Первые 100 страниц', 'description' => 'Прочитано 100 страниц', 'condition' => function($stats, $conn, $userId) {
         $stmt = $conn->prepare("SELECT SUM(read_pages) as total FROM books WHERE user_id = ?");
@@ -46,7 +44,6 @@ $achievements = [
     }],
 ];
 
-// Check which achievements are unlocked
 $unlockedAchievements = [];
 foreach ($achievements as $achievement) {
     if ($achievement['condition']($userStats, $conn, $userId)) {
@@ -54,7 +51,6 @@ foreach ($achievements as $achievement) {
     }
 }
 
-// Get top 10 users by reading minutes
 $stmt = $conn->prepare("SELECT name, photo_url, total_reading_minutes 
                         FROM users 
                         ORDER BY total_reading_minutes DESC 

@@ -1,8 +1,6 @@
--- Create database
 CREATE DATABASE IF NOT EXISTS bookmory CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE bookmory;
 
--- Table: users
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -17,7 +15,6 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table: books
 CREATE TABLE IF NOT EXISTS books (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -33,7 +30,6 @@ CREATE TABLE IF NOT EXISTS books (
     INDEX idx_user_status (user_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table: reading_sessions
 CREATE TABLE IF NOT EXISTS reading_sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -48,7 +44,6 @@ CREATE TABLE IF NOT EXISTS reading_sessions (
     INDEX idx_book_date (book_id, session_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table: memos
 CREATE TABLE IF NOT EXISTS memos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -61,8 +56,6 @@ CREATE TABLE IF NOT EXISTS memos (
     INDEX idx_user_book (user_id, book_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Insert sample data for testing (optional)
--- Password: password123 (hashed with password_hash PHP function)
 INSERT INTO users (email, password_hash, name, description, total_reading_minutes, total_books_finished, current_streak) VALUES
 ('demo@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Demo User', 'Book lover', 1200, 5, 7);
 

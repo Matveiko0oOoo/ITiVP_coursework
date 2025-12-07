@@ -1,7 +1,5 @@
-// Client-side validation and utilities
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Form validation
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
@@ -11,13 +9,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Email validation
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
 
-    // Form validation
     function validateForm(form) {
         let isValid = true;
         const inputs = form.querySelectorAll('input[required], textarea[required]');
@@ -62,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Auto-hide alerts
     setTimeout(() => {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(alert => {

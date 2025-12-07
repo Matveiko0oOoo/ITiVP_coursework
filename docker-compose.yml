@@ -48,14 +48,12 @@ services:
     depends_on:
       - app
 
-  mysql-exporter: # Renamed for clarity with the original project
-    image: quay.io/prometheus/mysqld-exporter # Using the quay.io image
-    container_name: bookmory_mysql_exporter # Renamed to match original naming
+  mysql-exporter:
+    image: quay.io/prometheus/mysqld-exporter
+    container_name: bookmory_mysql_exporter
     restart: unless-stopped
     command:
-     # Use the username and password from the 'db' service
      - "--mysqld.username=matvey:1311"
-     # Use the service name 'db' as the host on the Docker network
      - "--mysqld.address=db:3306" 
     networks:
       - bookmory_network

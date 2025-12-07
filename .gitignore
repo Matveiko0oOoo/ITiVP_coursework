@@ -1,17 +1,13 @@
-# Docker
 *.log
 
-# Uploads
 src/uploads/*
 !src/uploads/.gitkeep
 
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
 .DS_Store
 Thumbs.db
 

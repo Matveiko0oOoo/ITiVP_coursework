@@ -1,5 +1,4 @@
 <?php
-// Health check endpoint
 header('Content-Type: application/json');
 
 $status = [
@@ -8,7 +7,6 @@ $status = [
     'services' => []
 ];
 
-// Check database connection
 try {
     require_once 'config/database.php';
     $db = new Database();

@@ -21,7 +21,6 @@ class Database {
             );
         } catch(PDOException $e) {
             error_log("Connection error: " . $e->getMessage());
-            // Если подключение не удалось, пробуем подключиться без указания базы данных
             try {
                 $this->conn = new PDO(
                     "mysql:host=" . $this->host . ";charset=utf8mb4",

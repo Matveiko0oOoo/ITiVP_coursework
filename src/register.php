@@ -11,7 +11,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    // Validation
     if (empty($name) || empty($email) || empty($password)) {
         $error = 'Все поля обязательны для заполнения';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -29,13 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$conn) {
             $error = 'Ошибка подключения к базе данных. Проверьте настройки подключения.';
         } else {
-            // Check if email exists
             $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
             $stmt->execute([$email]);
             if ($stmt->fetch()) {
                 $error = 'Пользователь с таким email уже существует';
             } else {
-                // Create user
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
                 $stmt = $conn->prepare("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)");
                 if ($stmt->execute([$name, $email, $password_hash])) {

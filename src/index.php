@@ -7,17 +7,14 @@ $db = new Database();
 $conn = $db->getConnection();
 $userId = getCurrentUserId();
 
-// Get current reading book
 $stmt = $conn->prepare("SELECT * FROM books WHERE user_id = ? AND status = 'Reading' ORDER BY updated_at DESC LIMIT 1");
 $stmt->execute([$userId]);
 $currentBook = $stmt->fetch();
 
-// Get user stats
 $stmt = $conn->prepare("SELECT total_reading_minutes, total_books_finished, current_streak FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $userStats = $stmt->fetch();
 
-// Get today's reading stats
 $today = date('Y-m-d');
 $stmt = $conn->prepare("SELECT SUM(duration_minutes) as total_minutes, SUM(pages_read) as total_pages 
                         FROM reading_sessions WHERE user_id = ? AND session_date = ?");

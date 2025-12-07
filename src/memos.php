@@ -10,7 +10,6 @@ $userId = getCurrentUserId();
 $error = '';
 $success = '';
 
-// Handle memo addition
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_memo'])) {
     $bookId = intval($_POST['book_id'] ?? 0);
     $memoText = trim($_POST['memo_text'] ?? '');
@@ -18,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_memo'])) {
     if (empty($bookId) || empty($memoText)) {
         $error = 'Выберите книгу и введите текст заметки';
     } else {
-        // Verify book belongs to user and is finished
         $stmt = $conn->prepare("SELECT id FROM books WHERE id = ? AND user_id = ? AND status = 'Finished'");
         $stmt->execute([$bookId, $userId]);
         if (!$stmt->fetch()) {
@@ -34,12 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_memo'])) {
     }
 }
 
-// Get finished books for dropdown
 $stmt = $conn->prepare("SELECT id, title, author FROM books WHERE user_id = ? AND status = 'Finished' ORDER BY updated_at DESC");
 $stmt->execute([$userId]);
 $finishedBooks = $stmt->fetchAll();
 
-// Get all memos
 $stmt = $conn->prepare("SELECT m.*, b.title, b.author 
                         FROM memos m 
                         JOIN books b ON m.book_id = b.id 

@@ -10,7 +10,6 @@ $userId = getCurrentUserId();
 $error = '';
 $success = '';
 
-// Handle book addition
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book'])) {
     $title = trim($_POST['title'] ?? '');
     $author = trim($_POST['author'] ?? '');
@@ -22,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book'])) {
     } else {
         $pdfPath = null;
         
-        // Handle PDF upload
         if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = __DIR__ . '/uploads/books/';
             if (!is_dir($uploadDir)) {
@@ -47,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_book'])) {
     }
 }
 
-// Handle status change
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_status'])) {
     $bookId = intval($_POST['book_id'] ?? 0);
     $newStatus = $_POST['new_status'] ?? '';
@@ -59,23 +56,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_status'])) {
     }
 }
 
-// Handle book deletion
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_book'])) {
+    $bookId = intval($_POST['book_id'] ?? 0);
+    $title = trim($_POST['title'] ?? '');
+    $author = trim($_POST['author'] ?? '');
+    $totalPages = intval($_POST['total_pages'] ?? 0);
+
+    if ($bookId && !empty($title) && !empty($author) && $totalPages > 0) {
+
+        $stmt = $conn->prepare("SELECT read_pages FROM books WHERE id = ? AND user_id = ?");
+        $stmt->execute([$bookId, $userId]);
+        $currentBook = $stmt->fetch();
+
+        if ($currentBook) {
+            $readPages = min($currentBook['read_pages'], $totalPages);
+            
+            $stmt = $conn->prepare("UPDATE books SET title = ?, author = ?, total_pages = ?, read_pages = ? WHERE id = ? AND user_id = ?");
+            if ($stmt->execute([$title, $author, $totalPages, $readPages, $bookId, $userId])) {
+                $success = 'Книга успешно обновлена!';
+            } else {
+                $error = 'Ошибка при обновлении книги';
+            }
+        }
+    } else {
+        $error = 'Заполните все поля корректно';
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_book'])) {
     $bookId = intval($_POST['book_id'] ?? 0);
 
     if ($bookId) {
-        // Get book info to delete PDF file
         $stmt = $conn->prepare("SELECT pdf_file_path FROM books WHERE id = ? AND user_id = ?");
         $stmt->execute([$bookId, $userId]);
         $book = $stmt->fetch();
 
         if ($book) {
-            // Delete PDF file if exists
             if ($book['pdf_file_path'] && file_exists(__DIR__ . $book['pdf_file_path'])) {
                 unlink(__DIR__ . $book['pdf_file_path']);
             }
 
-            // Delete book (cascade will delete related sessions and memos)
             $stmt = $conn->prepare("DELETE FROM books WHERE id = ? AND user_id = ?");
             if ($stmt->execute([$bookId, $userId])) {
                 $success = 'Книга успешно удалена!';
@@ -86,15 +106,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_book'])) {
     }
 }
 
-// Get books to read
 $stmt = $conn->prepare("SELECT * FROM books WHERE user_id = ? AND status = 'To Read' ORDER BY created_at DESC");
 $stmt->execute([$userId]);
 $booksToRead = $stmt->fetchAll();
 
-// Get all books
 $stmt = $conn->prepare("SELECT * FROM books WHERE user_id = ? ORDER BY status, created_at DESC");
 $stmt->execute([$userId]);
 $allBooks = $stmt->fetchAll();
+
+$bookSessions = [];
+foreach ($allBooks as $book) {
+    $stmt = $conn->prepare("SELECT COUNT(*) as session_count, SUM(duration_minutes) as total_minutes, SUM(pages_read) as total_pages 
+                           FROM reading_sessions WHERE book_id = ? AND user_id = ?");
+    $stmt->execute([$book['id'], $userId]);
+    $bookSessions[$book['id']] = $stmt->fetch();
+}
 
 $pageTitle = 'Управление книгами';
 include 'includes/header.php';
@@ -176,6 +202,14 @@ include 'includes/header.php';
                             <input type="hidden" name="new_status" value="Reading">
                             <button type="submit" class="btn btn-primary">Начать читать</button>
                         </form>
+                        <button type="button" class="btn btn-secondary" style="padding: 0.5rem 0.75rem;" 
+                                title="Редактировать книгу" onclick="showEditModal(<?php echo $book['id']; ?>, '<?php echo htmlspecialchars(addslashes($book['title'])); ?>', '<?php echo htmlspecialchars(addslashes($book['author'])); ?>', <?php echo $book['total_pages']; ?>)">
+                            ✏️
+                        </button>
+                        <button type="button" class="btn btn-info" style="padding: 0.5rem 0.75rem;" 
+                                title="Статистика" onclick="showStatsModal(<?php echo $book['id']; ?>, '<?php echo htmlspecialchars(addslashes($book['title'])); ?>')">
+                            📊
+                        </button>
                         <button type="button" class="btn btn-danger" style="padding: 0.5rem 0.75rem;" 
                                 title="Удалить книгу" onclick="showDeleteModal(<?php echo $book['id']; ?>, '<?php echo htmlspecialchars(addslashes($book['title'])); ?>')">
                             🗑️
@@ -219,6 +253,14 @@ include 'includes/header.php';
                     <?php if ($book['status'] === 'Reading'): ?>
                         <a href="reading_session.php?book_id=<?php echo $book['id']; ?>" class="btn btn-primary">Читать</a>
                     <?php endif; ?>
+                    <button type="button" class="btn btn-secondary" style="padding: 0.5rem 0.75rem;" 
+                            title="Редактировать книгу" onclick="showEditModal(<?php echo $book['id']; ?>, '<?php echo htmlspecialchars(addslashes($book['title'])); ?>', '<?php echo htmlspecialchars(addslashes($book['author'])); ?>', <?php echo $book['total_pages']; ?>)">
+                        ✏️
+                    </button>
+                    <button type="button" class="btn btn-info" style="padding: 0.5rem 0.75rem;" 
+                            title="Статистика" onclick="showStatsModal(<?php echo $book['id']; ?>, '<?php echo htmlspecialchars(addslashes($book['title'])); ?>')">
+                        📊
+                    </button>
                     <button type="button" class="btn btn-danger" style="padding: 0.5rem 0.75rem;" 
                             title="Удалить книгу" onclick="showDeleteModal(<?php echo $book['id']; ?>, '<?php echo htmlspecialchars(addslashes($book['title'])); ?>')">
                         🗑️
@@ -229,7 +271,60 @@ include 'includes/header.php';
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<div id="editModal" class="modal" tabindex="-1" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Редактировать книгу</h5>
+        <button type="button" class="btn-close" onclick="closeEditModal()" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editBookForm" method="POST">
+          <input type="hidden" name="book_id" id="editBookId" value="">
+          <input type="hidden" name="edit_book" value="1">
+          
+          <div class="form-group">
+            <label class="form-label" for="editTitle">Название книги</label>
+            <input type="text" class="form-input" id="editTitle" name="title" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editAuthor">Автор</label>
+            <input type="text" class="form-input" id="editAuthor" name="author" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="editTotalPages">Общее количество страниц</label>
+            <input type="number" class="form-input" id="editTotalPages" name="total_pages" min="1" required>
+          </div>
+
+          <div class="modal-footer" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="statsModal" class="modal" tabindex="-1" style="display: none;">
+  <div class="modal-dialog" style="max-width: 800px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Статистика: <span id="statsBookTitle"></span></h5>
+        <button type="button" class="btn-close" onclick="closeStatsModal()" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body" id="statsModalBody">
+        <div style="text-align: center; padding: 2rem;">
+          <div class="spinner" style="border: 4px solid var(--border-color); border-top: 4px solid var(--accent-yellow); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+          <p style="margin-top: 1rem; color: var(--text-secondary);">Загрузка статистики...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="deleteModal" class="modal" tabindex="-1" style="display: none;">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -256,6 +351,41 @@ include 'includes/header.php';
 </div>
 
 <script>
+function showEditModal(bookId, bookTitle, bookAuthor, totalPages) {
+    document.getElementById('editBookId').value = bookId;
+    document.getElementById('editTitle').value = bookTitle;
+    document.getElementById('editAuthor').value = bookAuthor;
+    document.getElementById('editTotalPages').value = totalPages;
+    document.getElementById('editModal').style.display = 'flex';
+    document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    document.getElementById('editModal').classList.remove('show');
+}
+
+function showStatsModal(bookId, bookTitle) {
+    document.getElementById('statsBookTitle').textContent = bookTitle;
+    document.getElementById('statsModal').style.display = 'flex';
+    document.getElementById('statsModal').classList.add('show');
+    
+    fetch('book_statistics.php?book_id=' + bookId)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('statsModalBody').innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('statsModalBody').innerHTML = 
+                '<div class="alert alert-error">Ошибка при загрузке статистики</div>';
+        });
+}
+
+function closeStatsModal() {
+    document.getElementById('statsModal').style.display = 'none';
+    document.getElementById('statsModal').classList.remove('show');
+}
+
 function showDeleteModal(bookId, bookTitle) {
     document.getElementById('bookIdToDelete').value = bookId;
     document.getElementById('bookTitleToDelete').textContent = bookTitle;
@@ -268,18 +398,51 @@ function closeDeleteModal() {
     document.getElementById('deleteModal').classList.remove('show');
 }
 
-// Close modal on overlay click
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDeleteModal();
+document.addEventListener('DOMContentLoaded', function() {
+    var editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
     }
-});
 
-// Close modal on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && document.getElementById('deleteModal').style.display === 'flex') {
-        closeDeleteModal();
+    var statsModal = document.getElementById('statsModal');
+    if (statsModal) {
+        statsModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStatsModal();
+            }
+        });
     }
+
+    var deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var editModalEl = document.getElementById('editModal');
+            var statsModalEl = document.getElementById('statsModal');
+            var deleteModalEl = document.getElementById('deleteModal');
+            
+            if (editModalEl && editModalEl.style.display === 'flex') {
+                closeEditModal();
+            }
+            if (statsModalEl && statsModalEl.style.display === 'flex') {
+                closeStatsModal();
+            }
+            if (deleteModalEl && deleteModalEl.style.display === 'flex') {
+                closeDeleteModal();
+            }
+        }
+    });
 });
 </script>
 

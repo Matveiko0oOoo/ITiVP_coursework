@@ -33,7 +33,12 @@ docker compose down -v
 docker exec -it bookmory_mysql mysql -u matvey -p 1311 bookmory
 ```
 
-
+После подключения можно выполнять SQL команды:
+```sql
+SHOW TABLES;
+SELECT * FROM users;
+SELECT * FROM books;
+```
 
 Для выхода из MySQL:
 ```sql

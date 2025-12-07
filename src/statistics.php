@@ -7,26 +7,22 @@ $db = new Database();
 $conn = $db->getConnection();
 $userId = getCurrentUserId();
 
-// Get user total stats
 $stmt = $conn->prepare("SELECT total_reading_minutes, total_books_finished, current_streak FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $totalStats = $stmt->fetch();
 
-// Get today's stats
 $today = date('Y-m-d');
 $stmt = $conn->prepare("SELECT SUM(duration_minutes) as minutes, SUM(pages_read) as pages 
                         FROM reading_sessions WHERE user_id = ? AND session_date = ?");
 $stmt->execute([$userId, $today]);
 $todayStats = $stmt->fetch();
 
-// Get this year's stats
 $yearStart = date('Y-01-01');
 $stmt = $conn->prepare("SELECT SUM(duration_minutes) as minutes, SUM(pages_read) as pages, COUNT(*) as sessions
                         FROM reading_sessions WHERE user_id = ? AND session_date >= ?");
 $stmt->execute([$userId, $yearStart]);
 $yearStats = $stmt->fetch();
 
-// Get monthly stats for last 12 months
 $monthlyStats = [];
 for ($i = 11; $i >= 0; $i--) {
     $monthStart = date('Y-m-01', strtotime("-$i months"));

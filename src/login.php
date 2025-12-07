@@ -2,7 +2,6 @@
 require_once 'config/database.php';
 require_once 'config/auth.php';
 
-// Redirect if already logged in
 if (isLoggedIn()) {
     header('Location: /index.php');
     exit;

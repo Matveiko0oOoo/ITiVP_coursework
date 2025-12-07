@@ -16,7 +16,6 @@ if (!$bookId) {
     exit;
 }
 
-// Get book info
 $stmt = $conn->prepare("SELECT * FROM books WHERE id = ? AND user_id = ?");
 $stmt->execute([$bookId, $userId]);
 $book = $stmt->fetch();
@@ -36,31 +35,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($pages + $book['read_pages'] > $book['total_pages']) {
         $error = 'Количество прочитанных страниц не может превышать общее количество страниц';
     } else {
-        // Create reading session
         $stmt = $conn->prepare("INSERT INTO reading_sessions (user_id, book_id, session_date, duration_minutes, pages_read) 
                                 VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$userId, $bookId, $sessionDate, $duration, $pages]);
 
-        // Update book progress
         $newReadPages = min($book['read_pages'] + $pages, $book['total_pages']);
         $stmt = $conn->prepare("UPDATE books SET read_pages = ? WHERE id = ?");
         $stmt->execute([$newReadPages, $bookId]);
 
-        // Update book status if finished
         if ($newReadPages >= $book['total_pages'] && $book['status'] !== 'Finished') {
             $stmt = $conn->prepare("UPDATE books SET status = 'Finished' WHERE id = ?");
             $stmt->execute([$bookId]);
 
-            // Update user stats
             $stmt = $conn->prepare("UPDATE users SET total_books_finished = total_books_finished + 1 WHERE id = ?");
             $stmt->execute([$userId]);
         }
 
-        // Update user total reading minutes
         $stmt = $conn->prepare("UPDATE users SET total_reading_minutes = total_reading_minutes + ? WHERE id = ?");
         $stmt->execute([$duration, $userId]);
 
-        // Update streak (simplified - check if reading today)
         if ($sessionDate === date('Y-m-d')) {
             $stmt = $conn->prepare("UPDATE users SET current_streak = current_streak + 1 WHERE id = ?");
             $stmt->execute([$userId]);

@@ -1,4 +1,3 @@
-/* Dark Mode Theme - BookMory */
 :root {
     --bg-primary: #2c3e50;
     --bg-secondary: #34495e;
@@ -27,7 +26,6 @@ body {
     line-height: 1.6;
 }
 
-/* Navigation */
 .navbar {
     background: var(--bg-secondary);
     padding: 1rem 0;
@@ -77,14 +75,12 @@ body {
     color: var(--accent-yellow);
 }
 
-/* Container */
 .container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
 }
 
-/* Cards */
 .card {
     background: var(--bg-secondary);
     border-radius: 10px;
@@ -109,7 +105,6 @@ body {
     font-weight: bold;
 }
 
-/* Forms */
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -146,7 +141,6 @@ body {
     min-height: 120px;
 }
 
-/* Buttons */
 .btn {
     padding: 0.75rem 1.5rem;
     border: none;
@@ -198,7 +192,18 @@ body {
     transform: scale(0.95);
 }
 
-/* Grid Layout */
+.btn-info {
+    background: #3498db;
+    color: white;
+    border: none;
+}
+
+.btn-info:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow);
+}
+
 .grid {
     display: grid;
     gap: 1.5rem;
@@ -213,7 +218,6 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
-/* Stats Cards */
 .stat-card {
     background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
     padding: 1.5rem;
@@ -240,7 +244,6 @@ body {
     text-transform: uppercase;
 }
 
-/* Book List */
 .book-list {
     display: grid;
     gap: 1rem;
@@ -282,7 +285,6 @@ body {
     transition: width 0.3s;
 }
 
-/* Table */
 .table {
     width: 100%;
     border-collapse: collapse;
@@ -306,7 +308,6 @@ body {
     background: var(--bg-tertiary);
 }
 
-/* Alert Messages */
 .alert {
     padding: 1rem;
     border-radius: 5px;
@@ -331,7 +332,6 @@ body {
     color: #3498db;
 }
 
-/* Profile */
 .profile-header {
     text-align: center;
     margin-bottom: 2rem;
@@ -346,7 +346,6 @@ body {
     margin-bottom: 1rem;
 }
 
-/* Footer */
 .footer {
     text-align: center;
     padding: 2rem;
@@ -354,7 +353,6 @@ body {
     margin-top: 3rem;
 }
 
-/* Responsive Design - Mobile First */
 @media (max-width: 768px) {
     .nav-menu {
         flex-direction: column;
@@ -401,7 +399,6 @@ body {
     }
 }
 
-/* Loading Spinner */
 .spinner {
     border: 4px solid var(--bg-secondary);
     border-top: 4px solid var(--accent-yellow);
@@ -417,7 +414,6 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Badge */
 .badge {
     display: inline-block;
     padding: 0.25rem 0.75rem;
@@ -441,7 +437,6 @@ body {
     color: white;
 }
 
-/* Modal - Bootstrap style */
 .modal {
     display: none;
     position: fixed;

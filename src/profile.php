@@ -10,7 +10,6 @@ $userId = getCurrentUserId();
 $error = '';
 $success = '';
 
-// Get user data
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $user = $stmt->fetch();
@@ -20,7 +19,6 @@ if (!$user) {
     exit;
 }
 
-// Handle profile update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
@@ -31,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Некорректный email адрес';
     } else {
-        // Check if email is taken by another user
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
         $stmt->execute([$email, $userId]);
         if ($stmt->fetch()) {
@@ -39,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $photoUrl = $user['photo_url'];
 
-            // Handle photo upload
             if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
                 $uploadDir = __DIR__ . '/uploads/photos/';
                 if (!is_dir($uploadDir)) {
@@ -52,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $targetPath = $uploadDir . $fileName;
 
                     if (move_uploaded_file($_FILES['photo']['tmp_name'], $targetPath)) {
-                        // Delete old photo if exists
+
                         if ($photoUrl && file_exists(__DIR__ . $photoUrl)) {
                             unlink(__DIR__ . $photoUrl);
                         }
@@ -67,7 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $name;
                 $_SESSION['user_email'] = $email;
                 
-                // Reload user data
                 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
                 $stmt->execute([$userId]);
                 $user = $stmt->fetch();
