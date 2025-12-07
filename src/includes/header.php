@@ -11,7 +11,7 @@
     <?php if (isset($_SESSION['user_id'])): ?>
     
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid nav-container">
+        <div class="nav-container">
             
             <a class="navbar-brand nav-logo" href="/index.php">📚 BookMory</a>
 

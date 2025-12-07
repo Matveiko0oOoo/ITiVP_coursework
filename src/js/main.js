@@ -1,45 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile Navigation Toggle - Bootstrap-like
-    const navbarToggler = document.getElementById('navbarToggler');
-    const collapseMenu = document.getElementById('navbarToggleExternalContent');
-    
-    if (navbarToggler && collapseMenu) {
-        // Prevent event bubbling
-        navbarToggler.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const isExpanded = navbarToggler.getAttribute('aria-expanded') === 'true';
-            
-            if (isExpanded) {
-                collapseMenu.classList.remove('show');
-                navbarToggler.setAttribute('aria-expanded', 'false');
-            } else {
-                collapseMenu.classList.add('show');
-                navbarToggler.setAttribute('aria-expanded', 'true');
-            }
-        });
-
-        // Close menu when clicking on a link
-        const navLinks = collapseMenu.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                collapseMenu.classList.remove('show');
-                navbarToggler.setAttribute('aria-expanded', 'false');
-            });
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', function(e) {
-            if (collapseMenu.classList.contains('show')) {
-                if (!navbarToggler.contains(e.target) && !collapseMenu.contains(e.target)) {
-                    collapseMenu.classList.remove('show');
-                    navbarToggler.setAttribute('aria-expanded', 'false');
-                }
-            }
-        });
-    }
+    // Bootstrap handles navbar collapse automatically, no custom JS needed
 
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
